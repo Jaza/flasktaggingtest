@@ -44,3 +44,8 @@ docs/_build
 
 # Virtualenvs
 env/
+
+# Flask project-specific stuff
+log
+flasktaggingtest/static/css/common.css
+flasktaggingtest/static/js/common.js
