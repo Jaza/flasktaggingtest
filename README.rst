@@ -46,6 +46,7 @@ You can have a different random secret key each time the app starts,
 if you want:
 
 ::
+
     export FLASKTAGGINGTEST_SECRET=`python -c "import os; from binascii import hexlify; print(hexlify(os.urandom(24)))"`; python manage.py server
 
 
