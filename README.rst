@@ -9,6 +9,9 @@ empty. Obviously, in a real-life app, tags would be saved to database
 models (e.g. using SQLAlchemy), or to some other persistent data store,
 instead.
 
+Here's a `demo of the app in action
+<https://flasktaggingtest.herokuapp.com/>`_.
+
 
 Quickstart
 ----------
