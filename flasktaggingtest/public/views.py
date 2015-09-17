@@ -18,8 +18,22 @@ def get_tags_choices():
     from session store.
     """
 
-    tags_choices_all = [(str(id), title) for id, title in enumerate(session.get('tags', [])) if id]
-    tags_choices = [(id, title) for id, title in tags_choices_all
+    # Would be something like this if fetching tags from the DB:
+    # tags_choices_all = [(str(o.id), o.title) for o in Tag.query
+    #     .all()]
+    # For session-storage example, is like this:
+    tags_choices_all = [(str(id), title)
+        for id, title in enumerate(session.get('tags', []))
+            if id]
+
+    # Would be something like this if fetching tags from the DB:
+    # tags_choices = [(str(o.id), o.title) for o in Tag.query
+    #         .join(Tag.posts)
+    #         .filter_by(id=post.id)
+    #         .all()]
+    # For session-storage example, is like this:
+    tags_choices = [(id, title)
+        for id, title in tags_choices_all
             if int(id) in session.get('tag_map', [])]
 
     return (tags_choices_all, tags_choices)
@@ -67,6 +81,8 @@ def save_tags():
     # http://stackoverflow.com/a/5519971/2066849
     form.tags_field.process(request.form)
 
+    # Note: DB storage examples (in comments) are based on an
+    # implementation of this in SQLAlchemy (declarative / ORM version).
     if form.validate_on_submit():
         if form.tags_field.data:
             tags_ids = []
@@ -80,6 +96,11 @@ def save_tags():
                     pass
 
             # Save all tag mappings for recognized integer IDs now.
+            # Would be something like this if fetching tags from the DB:
+            # post.tags = Tag.query
+            #     .filter(Tag.id.in_(tags_ids)).all()
+            # ids_found = [str(o.id) for o in post.tags]
+            # For session-storage example, is like this:
             session['tag_map'] = [int(id) for id, title in tags_choices_all if (id in tags_ids)]
             ids_found = [str(id) for id in session['tag_map']]
 
@@ -89,24 +110,46 @@ def save_tags():
                 if not (v in ids_found):
                     # Try and do tag lookup by title.
                     try:
-                        existing_tag = [int(id) for id, title in tags_choices_all if (title == v)][0]
+                        # Would be something like this if fetching tags
+                        # from the DB:
+                        # existing_tag = Tag.query
+                        #     .filter_by(title=v).first()
+                        # For session-storage example, is like this:
+                        existing_tag = [int(id)
+                            for id, title in tags_choices_all
+                                if (title == v)][0]
                     except IndexError:
                         existing_tag = None
 
                     if existing_tag:
                         # If tag lookup by title succeeded, then
                         # add the tag ID to the mapping.
+                        # Would be something like this if fetching tags
+                        # from the DB:
+                        # post.tags.append(existing_tag)
+                        # For session-storage example, is like this:
                         session['tag_map'].append(existing_tag)
                     elif re.match(r'^[A-Za-z0-9_\- ]+$', v):
+                        # For session-storage example, avoid having a
+                        # tag with ID 0, by making the first element
+                        # of the list an empty string.
                         if not session.get('tags'):
                             session['tags'] = ['']
 
                         # Otherwise, create a new tag, and map it.
+                        # Would be something like this if fetching tags
+                        # from the DB:
+                        # new_tag = Tag(title=v)
+                        # db.session.add(new_tag)
+                        # post.tags.append(new_tag)
+                        # For session-storage example, is like this:
                         session['tags'].append(v)
                         new_tag = len(session['tags'])-1
-
                         session['tag_map'].append(new_tag)
         else:
+            # Would be something like this if fetching tags from the DB:
+            # post.tags = []
+            # For session-storage example, is like this:
             session['tag_map'] = []
 
         flash("Tags saved.", 'success')
